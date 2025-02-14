@@ -2,9 +2,28 @@
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useState } from "react";
+import {useEffect, useState } from "react";
 import React from "react";
 
+const fetchLogs = async () => {
+    try {
+        const response = await fetch("http://localhost:5001/api/logs");
+        if (!response.ok) {
+            throw new Error("Failed to fetch logs");
+        }
+        const logs = await response.json();
+
+        // Convert logs into FullCalendar events format
+        return logs.map(log => ({
+            title: log.content,
+            date: log.date.split("T")[0], // Ensure correct format
+            id: log._id,
+        }));
+    } catch (error) {
+        console.error("Error fetching logs:", error);
+        return [];
+    }
+};
 
 export default function Calendar() {
     const [selectedDate, setSelectedDate] = useState(null);
@@ -15,6 +34,16 @@ export default function Calendar() {
         console.log("Date Clicked:", info.dateStr);
         setSelectedDate(info.dateStr);
     };
+
+    // Fetch logs from backend on component mount
+    useEffect(() => {
+        const loadLogs = async () => {
+            const logs = await fetchLogs();
+            setEvents(logs); // Set logs to events state
+        };
+
+        loadLogs();
+    }, []); // Runs only once when the component mounts
 
     const handleSaveLog = async () => {
         if (!logContent) return; // Prevent saving empty logs
