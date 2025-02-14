@@ -139,8 +139,8 @@ export default function Calendar() {
                 )}
 
                 {selectedEvent && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="bg-white p-6 rounded-md shadow-md text-center">
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                        <div className="bg-white p-6 rounded-md shadow-lg text-center relative z-50">
                             <h2 className="text-xl font-semibold">{selectedEvent.title}</h2>
                             <p className="text-gray-700">Date: {selectedEvent.date}</p>
                             
@@ -161,6 +161,7 @@ export default function Calendar() {
                         </div>
                     </div>
                 )}
+
 
             </div>
         </div>   
