@@ -1,6 +1,5 @@
 const express = require('express');
 const Log = require('../models/Log');
-
 const router = express.Router();
 
 // ✅ Route 1: Create a new log
