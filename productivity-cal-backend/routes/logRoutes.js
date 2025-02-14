@@ -30,8 +30,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// ✅ Route 3: Delete a log by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/logs/:id', async (req, res) => {
     try {
         const log = await Log.findById(req.params.id);
         if (!log) {
