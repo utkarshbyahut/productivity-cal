@@ -86,6 +86,31 @@ export default function Calendar() {
         }
     };
     
+    const handleUpdateEvent = async (updatedEvent) => {
+        try {
+            const response = await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ content: updatedEvent.title }), // Send updated content
+            });
+    
+            if (!response.ok) {
+                throw new Error("Failed to update event");
+            }
+    
+            // Update the UI
+            setEvents(events.map(event => 
+                event.id === updatedEvent.id ? { ...event, title: updatedEvent.title } : event
+            ));
+            setSelectedEvent(null); // Close modal
+        } catch (error) {
+            console.error("Error updating event:", error);
+        }
+    };
+    
+
     const handleDeleteEvent = async (eventId) => {
         try {
             const response = await fetch(`http://localhost:5001/api/logs/${eventId}`, {
@@ -142,6 +167,15 @@ export default function Calendar() {
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                         <div className="bg-white p-6 rounded-md shadow-lg text-center relative z-50">
                             <h2 className="text-xl font-semibold">{selectedEvent.title}</h2>
+                            
+                            {/* Input field for editing */}
+                            <input
+                                type="text"
+                                value={selectedEvent.title}
+                                onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
+                                className="w-full p-2 border rounded-md"
+                            />
+
                             <p className="text-gray-700">Date: {selectedEvent.date}</p>
                             
                             <div className="mt-4 flex justify-center space-x-4">

@@ -45,4 +45,24 @@ router.delete('/logs/:id', async (req, res) => {
     }
 });
 
+router.put('/logs/:id', async (req, res) => {
+    try {
+        const { content } = req.body;
+        const log = await Log.findById(req.params.id);
+
+        if (!log) {
+            return res.status(404).json({ message: 'Log not found' });
+        }
+
+        log.content = content; // Update content
+        await log.save();
+
+        res.status(200).json(log);
+    } catch (error) {
+        console.error('Error updating log:', error);
+        res.status(500).json({ message: 'Server error', error });
+    }
+});
+
+
 module.exports = router;
