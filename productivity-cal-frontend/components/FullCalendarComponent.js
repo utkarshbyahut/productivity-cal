@@ -100,7 +100,7 @@ export default function Calendar() {
                 throw new Error("Failed to update event");
             }
     
-            // Update the UI
+            // Update the UI immediately
             setEvents(events.map(event => 
                 event.id === updatedEvent.id ? { ...event, title: updatedEvent.title } : event
             ));
@@ -109,6 +109,7 @@ export default function Calendar() {
             console.error("Error updating event:", error);
         }
     };
+    
     
 
     const handleDeleteEvent = async (eventId) => {
@@ -179,6 +180,12 @@ export default function Calendar() {
                             <p className="text-gray-700">Date: {selectedEvent.date}</p>
                             
                             <div className="mt-4 flex justify-center space-x-4">
+                                <button 
+                                    className="px-4 py-2 bg-green-500 text-white rounded-md"
+                                    onClick={() => handleUpdateEvent(selectedEvent)}
+                                >
+                                    Save
+                                </button>    
                                 <button 
                                     className="px-4 py-2 bg-red-500 text-white rounded-md"
                                     onClick={() => handleDeleteEvent(selectedEvent.id)}
