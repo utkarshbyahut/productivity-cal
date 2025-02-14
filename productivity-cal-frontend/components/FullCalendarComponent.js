@@ -88,27 +88,42 @@ export default function Calendar() {
     
     const handleUpdateEvent = async (updatedEvent) => {
         try {
-            const response = await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
-                method: "PUT",
+            // 1️⃣ Delete the old event
+            await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
+                method: "DELETE",
+            });
+    
+            // 2️⃣ Create a new event with updated title
+            const response = await fetch("http://localhost:5001/api/logs", {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ content: updatedEvent.title }), // Send updated content
+                body: JSON.stringify({
+                    date: updatedEvent.date,
+                    content: updatedEvent.title,
+                }),
             });
     
             if (!response.ok) {
-                throw new Error("Failed to update event");
+                throw new Error("Failed to create new event");
             }
     
-            // Update the UI immediately
-            setEvents(events.map(event => 
-                event.id === updatedEvent.id ? { ...event, title: updatedEvent.title } : event
-            ));
+            const newEvent = await response.json();
+    
+            // 3️⃣ Update the UI with the new event
+            setEvents([...events.filter(event => event.id !== updatedEvent.id), {
+                title: newEvent.content,
+                date: newEvent.date,
+                id: newEvent._id,
+            }]);
+    
             setSelectedEvent(null); // Close modal
         } catch (error) {
             console.error("Error updating event:", error);
         }
     };
+    
     
     
 
