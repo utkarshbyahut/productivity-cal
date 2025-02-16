@@ -13,17 +13,22 @@ const fetchLogs = async () => {
         }
         const logs = await response.json();
 
-        // Convert logs into FullCalendar events format
+        console.log("📥 Logs Fetched from Backend:", logs); // ✅ Debugging Step
+
         return logs.map(log => ({
-            title: log.content,
-            date: log.date.split("T")[0], // Ensure correct format
             id: log._id,
+            title: log.content, // Ensure title is mapped correctly
+            description: log.description || "",
+            start: log.date, // ✅ Ensure it's mapped correctly
+            end: log.date, // ✅ Use the same date unless there's a different endTime
         }));
+        
     } catch (error) {
         console.error("Error fetching logs:", error);
         return [];
     }
 };
+
 
 export default function Calendar() {
     const [selectedDate, setSelectedDate] = useState(null);
@@ -54,6 +59,11 @@ export default function Calendar() {
         loadLogs();
     }, []); // Runs only once when the component mounts
 
+    const [description, setDescription] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
+
+
     const handleSaveLog = async () => {
         if (!logContent) return; // Prevent saving empty logs
     
@@ -66,6 +76,9 @@ export default function Calendar() {
                 body: JSON.stringify({
                     date: selectedDate,
                     content: logContent,
+                    description,
+                    startTime,
+                    endTime,
                 }),
             });
     
@@ -76,7 +89,14 @@ export default function Calendar() {
             const newLog = await response.json();
     
             // Add the new log to the calendar events (with ID from DB)
-            setEvents([...events, { title: newLog.content, date: newLog.date, id: newLog._id }]);
+            setEvents([...events, {
+                title: newLog.content,
+                date: newLog.date,
+                description: newLog.description,
+                start: newLog.startTime,
+                end: newLog.endTime,
+                id: newLog._id,
+            }]);
     
             // Clear input and hide form
             setLogContent("");
@@ -111,7 +131,7 @@ export default function Calendar() {
     
             const newEvent = await response.json();
     
-            // 3️⃣ Update the UI with the new event
+            // Update the UI with the new event
             setEvents([...events.filter(event => event.id !== updatedEvent.id), {
                 title: newEvent.content,
                 date: newEvent.date,
@@ -123,9 +143,6 @@ export default function Calendar() {
             console.error("Error updating event:", error);
         }
     };
-    
-    
-    
 
     const handleDeleteEvent = async (eventId) => {
         try {
@@ -157,6 +174,12 @@ export default function Calendar() {
                     dateClick={handleDateClick}
                     events={events}
                     eventClick={handleEventClick}
+                    ref={(calendar) => {
+                        if (calendar) {
+                            console.log("📆 FullCalendar Events:", calendar.getApi().getEvents()); // 🔹 Debugging Step
+                        }
+                    }}
+
                 />
 
                 {selectedDate && (
@@ -170,12 +193,28 @@ export default function Calendar() {
                             placeholder="Enter log content"
                             required
                         />
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md mt-2"
+                            placeholder="Description"
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
+                        <input
+                            type="time"
+                            className="w-full p-2 border rounded-md mt-2"
+                            onChange={(e) => setStartTime(e.target.value)}
+                        />
+                        <input
+                            type="time"
+                            className="w-full p-2 border rounded-md mt-2"
+                            onChange={(e) => setEndTime(e.target.value)}
+                        />
                         <button
                             className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
                             onClick={handleSaveLog}
                         >
                             Save Log
-                        </button>    
+                        </button>       
                     </div>
                 )}
 
@@ -223,4 +262,3 @@ export default function Calendar() {
         </div>   
     );
 }
-

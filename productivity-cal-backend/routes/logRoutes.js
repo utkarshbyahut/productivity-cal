@@ -5,13 +5,20 @@ const router = express.Router();
 //Route 1: Create a new log
 router.post('/', async (req, res) => {
     try {
-        const { date, content } = req.body;
+        const { date, content, description, startTime, endTime } = req.body;
 
         if (!date || !content) {
             return res.status(400).json({ message: 'Date and content are required' });
         }
 
-        const newLog = new Log({ date, content });
+        const newLog = new Log({
+            date,
+            content,
+            description: description || "", // Default empty if not provided
+            startTime: startTime || "",
+            endTime: endTime || ""
+        });
+
         await newLog.save();
 
         res.status(201).json(newLog);
@@ -38,31 +45,12 @@ router.delete('/:id', async (req, res) => {
 //Route 2: Get all logs
 router.get('/', async (req, res) => {
     try {
-        const logs = await Log.find().sort({ date: -1 });
+        const logs = await Log.find().sort({ date: -1 }); // Sort logs by date (latest first)
         res.status(200).json(logs);
     } catch (error) {
+        console.error("Error fetching logs:", error);
         res.status(500).json({ message: 'Server error', error });
     }
 });
-
-router.put('/logs/:id', async (req, res) => {
-    try {
-        const { content } = req.body;
-        const log = await Log.findById(req.params.id);
-
-        if (!log) {
-            return res.status(404).json({ message: 'Log not found' });
-        }
-
-        log.content = content; // Update content
-        await log.save();
-
-        res.status(200).json(log);
-    } catch (error) {
-        console.error('Error updating log:', error);
-        res.status(500).json({ message: 'Server error', error });
-    }
-});
-
 
 module.exports = router;
