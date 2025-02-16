@@ -17,10 +17,10 @@ const fetchLogs = async () => {
 
         return logs.map(log => ({
             id: log._id,
-            title: log.content, // Ensure title is mapped correctly
+            title: log.content,
             description: log.description || "",
-            start: log.date, // ✅ Ensure it's mapped correctly
-            end: log.date, // ✅ Use the same date unless there's a different endTime
+            start: log.date.split("T")[0], // ✅ Fixes timezone issue (keeps only YYYY-MM-DD)
+            allDay: true, // ✅ Forces FullCalendar to treat it as a full-day event
         }));
         
     } catch (error) {
@@ -28,6 +28,7 @@ const fetchLogs = async () => {
         return [];
     }
 };
+
 
 
 export default function Calendar() {
