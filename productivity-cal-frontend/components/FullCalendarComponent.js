@@ -88,12 +88,12 @@ export default function Calendar() {
     
     const handleUpdateEvent = async (updatedEvent) => {
         try {
-            // 1️⃣ Delete the old event
+            // Delete the old event
             await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
                 method: "DELETE",
             });
     
-            // 2️⃣ Create a new event with updated title
+            // Create a new event with updated title
             const response = await fetch("http://localhost:5001/api/logs", {
                 method: "POST",
                 headers: {
