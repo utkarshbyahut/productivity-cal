@@ -53,4 +53,27 @@ router.get('/', async (req, res) => {
     }
 });
 
+// ✅ Route: Update an existing log by ID
+router.put('/:id', async (req, res) => {
+    try {
+        const { date, content, description, startTime, endTime } = req.body;
+
+        const updatedLog = await Log.findByIdAndUpdate(
+            req.params.id,
+            { date, content, description, startTime, endTime },
+            { new: true } // ✅ Return the updated document
+        );
+
+        if (!updatedLog) {
+            return res.status(404).json({ message: "Log not found" });
+        }
+
+        res.status(200).json(updatedLog);
+    } catch (error) {
+        console.error("Error updating log:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+
 module.exports = router;

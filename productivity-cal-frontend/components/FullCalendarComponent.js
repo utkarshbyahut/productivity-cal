@@ -89,61 +89,76 @@ export default function Calendar() {
     
             const newLog = await response.json();
     
-            // Add the new log to the calendar events (with ID from DB)
-            setEvents([...events, {
-                title: newLog.content,
-                date: newLog.date,
-                description: newLog.description,
-                start: newLog.startTime,
-                end: newLog.endTime,
-                id: newLog._id,
-            }]);
+            // ✅ Use functional state update to avoid stale state issues
+            setEvents((prevEvents) => [
+                ...prevEvents,
+                {
+                    id: newLog._id,
+                    title: newLog.content,
+                    description: newLog.description,
+                    start: newLog.date.split("T")[0], // ✅ Ensures proper formatting
+                    allDay: true, // ✅ Prevents time-related issues
+                },
+            ]);
     
-            // Clear input and hide form
+            // ✅ Clear input fields
             setLogContent("");
             setSelectedDate(null);
+            setDescription("");
+            setStartTime("");
+            setEndTime("");
+    
         } catch (error) {
             console.error("Error saving log:", error);
         }
     };
     
+    
     const handleUpdateEvent = async (updatedEvent) => {
         try {
-            // Delete the old event
-            await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
-                method: "DELETE",
-            });
-    
-            // Create a new event with updated title
-            const response = await fetch("http://localhost:5001/api/logs", {
-                method: "POST",
+            // ✅ Send a PUT request instead of deleting and recreating
+            const response = await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
+                method: "PUT", // ✅ Use PUT instead of DELETE + POST
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     date: updatedEvent.date,
                     content: updatedEvent.title,
+                    description: updatedEvent.description || "", 
+                    startTime: updatedEvent.startTime || "00:00",
+                    endTime: updatedEvent.endTime || "00:00",
                 }),
             });
     
             if (!response.ok) {
-                throw new Error("Failed to create new event");
+                throw new Error("Failed to update event");
             }
     
-            const newEvent = await response.json();
+            const updatedLog = await response.json();
     
-            // Update the UI with the new event
-            setEvents([...events.filter(event => event.id !== updatedEvent.id), {
-                title: newEvent.content,
-                date: newEvent.date,
-                id: newEvent._id,
-            }]);
+            // ✅ Update the UI immediately
+            setEvents((prevEvents) =>
+                prevEvents.map((event) =>
+                    event.id === updatedLog._id
+                        ? {
+                              ...event,
+                              title: updatedLog.content,
+                              description: updatedLog.description,
+                              start: updatedLog.date.split("T")[0], // ✅ Keeps correct format
+                              allDay: true,
+                          }
+                        : event
+                )
+            );
     
-            setSelectedEvent(null); // Close modal
+            setSelectedEvent(null); // ✅ Close modal after update
+    
         } catch (error) {
             console.error("Error updating event:", error);
         }
     };
+    
 
     const handleDeleteEvent = async (eventId) => {
         try {
