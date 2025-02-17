@@ -19,8 +19,9 @@ const fetchLogs = async () => {
             id: log._id,
             title: log.content,
             description: log.description || "",
+            startTime: log.startTime, // debug for time
             start: log.date.split("T")[0], // ✅ Fixes timezone issue (keeps only YYYY-MM-DD)
-            allDay: true, // ✅ Forces FullCalendar to treat it as a full-day event
+            allDay: true // ✅ Forces FullCalendar to treat it as a full-day event
         }));
         
     } catch (error) {
@@ -28,8 +29,6 @@ const fetchLogs = async () => {
         return [];
     }
 };
-
-
 
 export default function Calendar() {
     const [selectedDate, setSelectedDate] = useState(null);
@@ -50,9 +49,10 @@ export default function Calendar() {
         });
     };
 
+    /* 
     // Fetch logs from backend on component mount
-    useEffect(() => {
-        const loadLogs = async () => {
+        useEffect(() => {
+            const loadLogs = async () => {
             const logs = await fetchLogs();
             setEvents(logs); // Set logs to events state
         };
@@ -60,10 +60,32 @@ export default function Calendar() {
         loadLogs();
     }, []); // Runs only once when the component mounts
 
+    */
+
+    useEffect(() => {
+        const loadLogs = async () => {
+            const logs = await fetchLogs();
+    
+            const formattedEvents = logs.map(log => ({
+                id: log.id,
+                title: `${log.startTime ? log.startTime + " - " : ""}${log.title}`, // Adds space & dash
+                description: log.description || "",
+                start: log.start, // ✅ Fixes timezone issue (keeps only YYYY-MM-DD)
+                allDay: true
+            }));
+            
+            console.log(formattedEvents);
+
+            setEvents(formattedEvents); // ✅ Set formatted events to state
+        };
+    
+        loadLogs();
+
+    }, []);
+
     const [description, setDescription] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
-
 
     const handleSaveLog = async () => {
         if (!logContent) return; // Prevent saving empty logs
@@ -75,6 +97,7 @@ export default function Calendar() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
+                    id: id,
                     date: selectedDate,
                     content: logContent,
                     description,
@@ -93,11 +116,11 @@ export default function Calendar() {
             setEvents((prevEvents) => [
                 ...prevEvents,
                 {
-                    id: newLog._id,
+                    id: newLog.id,
                     title: newLog.content,
                     description: newLog.description,
                     start: newLog.date.split("T")[0], // ✅ Ensures proper formatting
-                    allDay: true, // ✅ Prevents time-related issues
+                    allDay: true // ✅ Prevents time-related issues
                 },
             ]);
     
@@ -116,13 +139,13 @@ export default function Calendar() {
     
     const handleUpdateEvent = async (updatedEvent) => {
         try {
-            // ✅ Send a PUT request instead of deleting and recreating
             const response = await fetch(`http://localhost:5001/api/logs/${updatedEvent.id}`, {
-                method: "PUT", // ✅ Use PUT instead of DELETE + POST
+                method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
+                    id: updatedEvent.id,
                     date: updatedEvent.date,
                     content: updatedEvent.title,
                     description: updatedEvent.description || "", 
