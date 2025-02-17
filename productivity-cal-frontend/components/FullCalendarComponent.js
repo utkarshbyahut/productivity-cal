@@ -97,12 +97,11 @@ export default function Calendar() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    id: id,
                     date: selectedDate,
                     content: logContent,
-                    description,
-                    startTime,
-                    endTime,
+                    description : description || "",
+                    startTime : startTime || "",
+                    endTime : endTime || "",
                 }),
             });
     
