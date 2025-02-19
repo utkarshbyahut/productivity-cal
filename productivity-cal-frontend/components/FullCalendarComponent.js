@@ -16,12 +16,17 @@ const fetchLogs = async () => {
         console.log("📥 Logs Fetched from Backend:", logs); // ✅ Debugging Step
 
         return logs.map(log => ({
+            // Want to make a working var as well to keep all the working and database specific values different and separate
             id: log._id,
             title: log.content,
             description: log.description || "",
             startTime: log.startTime, // debug for time
             start: log.date.split("T")[0], // ✅ Fixes timezone issue (keeps only YYYY-MM-DD)
-            allDay: true // ✅ Forces FullCalendar to treat it as a full-day event
+            allDay: true, // ✅ Forces FullCalendar to treat it as a full-day event
+
+            // Starting working values here
+            title_wv: log.content.split(" ").slice(2).join(" ") || log.content
+
         }));
         
     } catch (error) {
@@ -68,7 +73,7 @@ export default function Calendar() {
     
             const formattedEvents = logs.map(log => ({
                 id: log.id,
-                title: `${log.startTime ? log.startTime + " - " : ""}${log.title}`, // Adds space & dash
+                title: `${log.startTime ? log.startTime + " - " : ""}${log.title_wv}`, // Adds space & dash
                 description: log.description || "",
                 start: log.start, // ✅ Fixes timezone issue (keeps only YYYY-MM-DD)
                 allDay: true
@@ -168,10 +173,12 @@ export default function Calendar() {
                               title: updatedLog.content,
                               description: updatedLog.description,
                               start: updatedLog.date.split("T")[0], // ✅ Keeps correct format
-                              allDay: true,
-                          }
+                              allDay: true,              
+                          } 
+                          
                         : event
                 )
+                
             );
     
             setSelectedEvent(null); // ✅ Close modal after update
@@ -260,7 +267,7 @@ export default function Calendar() {
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                         <div className="bg-white p-6 rounded-md shadow-lg text-center relative z-50">
                             <h2 className="text-xl font-semibold">{selectedEvent.title}</h2>
-                            
+
                             {/* Input field for editing */}
                             <input
                                 type="text"
@@ -268,6 +275,10 @@ export default function Calendar() {
                                 onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
                                 className="w-full p-2 border rounded-md"
                             />
+
+                            <p className="text-xl font-semibold">{selectedEvent.description}</p>
+                            <p className="text-xl font-semibold">{selectedEvent.startTime}</p>
+                            <p className="text-xl font-semibold">{selectedEvent.endTime}</p>
 
                             <p className="text-gray-700">Date: {selectedEvent.date}</p>
                             
